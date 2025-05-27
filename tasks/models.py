@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 from ProjectFlow import settings
+from projects.models import Project
 
 class Task(models.Model):
     class Status(models.TextChoices):
@@ -9,7 +10,18 @@ class Task(models.Model):
         IN_PROGRESS = 'IP', 'In Progress'
         DONE = 'DN', 'Done'
     
-    user = models.ForeignKey(User, on_delete= models.CASCADE)
+    project = models.ForeignKey(
+        Project,
+        related_name='tasks',
+        on_delete=models.CASCADE
+    )
+
+    user = models.ForeignKey(
+        User,
+        related_name='tasks',
+        on_delete=models.CASCADE
+    )
+    
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     due_date = models.DateField(blank=True,null=True)
@@ -34,3 +46,8 @@ class Task(models.Model):
             models.Index(fields=['status']),
             models.Index(fields=['user', 'status']),
         ]
+        
+    def clean(self):
+        if self.user not in self.project.participants.all():
+            from django.core.exceptions import ValidationError
+            raise ValidationError("Assigned user must be a participant of the project.")
