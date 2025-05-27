@@ -15,7 +15,7 @@ A comprehensive Project Management App built with Django that allows users to cr
 ## 🛠 Setup Instructions
 1. Clone the repository
 ```bash
-git clone https://github.com/Makihataima-Ken/Auth-Register-Django.git
+git clone https://github.com/Makihataima-Ken/ProjectFlow.git
 ```
 2. Create and activate a virtual environment
 ```bash
