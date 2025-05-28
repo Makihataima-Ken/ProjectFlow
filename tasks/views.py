@@ -60,9 +60,6 @@ class TaskAPIView(APIView):
 
 # ========== HTML VIEWS ==========
 
-API_BASE_URL = 'http://localhost:8000/api/tasks/'
-
-
 def task_list(request):
     access_token = request.session.get('access_token')
     if not access_token:
