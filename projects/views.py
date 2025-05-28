@@ -75,28 +75,28 @@ def project_list(request):
 
 
 
-# def project_detail(request, pk):
-#     access_token = request.session.get('access_token')
-#     if not access_token:
-#         return redirect('login_page')
+def project_detail(request, pk):
+    access_token = request.session.get('access_token')
+    if not access_token:
+        return redirect('login_page')
 
-#     try:
-#         payload = jwt.decode(access_token, settings.SECRET_KEY, algorithms=["HS256"])
-#         user_id = payload.get('user_id')
+    try:
+        payload = jwt.decode(access_token, settings.SECRET_KEY, algorithms=["HS256"])
+        user_id = payload.get('user_id')
 
-#         if not user_id:
-#             return redirect('login_page')
+        if not user_id:
+            return redirect('login_page')
 
-#         project = Project.objects.get(pk=pk,user_id=user_id)
-#         serializer = ProjectSerializer(project)
-#         project_data = serializer.data
+        project = Project.objects.get(pk=pk,project_manager_id=user_id)
+        serializer = ProjectSerializer(project)
+        project_data = serializer.data
 
-#         return render(request, 'projects/project_detail.html', {'project': project_data})
+        return render(request, 'projects/project_detail.html', {'project': project_data})
 
-#     except jwt.InvalidTokenError:
-#         return render(request, 'projects/error.html', {'error': 'Invalid or expired token. Please log in again.'})
-#     except Exception as e:
-#         return render(request, 'projects/error.html', {'error': f'An error occurred: {str(e)}'})
+    except jwt.InvalidTokenError:
+        return render(request, 'projects/error.html', {'error': 'Invalid or expired token. Please log in again.'})
+    except Exception as e:
+        return render(request, 'projects/error.html', {'error': f'An error occurred: {str(e)}'})
 
 def create_project(request):
     access_token = request.session.get('access_token')
