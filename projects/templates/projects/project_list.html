@@ -33,9 +33,9 @@
                         <a href="{% url 'update_project' project.id %}" class="btn btn-outline-primary">
                             <i class="bi bi-pencil"></i> Edit
                         </a>
-                        {% comment %} <a href="{% url 'delete_project' project.id %}" class="btn btn-outline-danger">
+                        <a href="{% url 'delete_project' project.id %}" class="btn btn-outline-danger">
                             <i class="bi bi-trash"></i> Delete
-                        </a> {% endcomment %}
+                        </a>
                         <a href="{% url 'project_detail' project.id %}" class="btn btn-outline-secondary">
                             <i class="bi bi-eye"></i> Details
                         </a>
