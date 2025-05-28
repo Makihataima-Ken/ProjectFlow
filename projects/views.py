@@ -6,6 +6,8 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import Response
 from rest_framework import status
 
+from projects.forms import ProjectForm
+
 from .models import Project
 from .serializers import ProjectSerializer
 
@@ -85,18 +87,48 @@ def project_list(request):
 #         if not user_id:
 #             return redirect('login_page')
 
-#         task = Task.objects.get(pk=pk,user_id=user_id)
-#         serializer = TaskSerializer(task)
-#         task_data = serializer.data
+#         project = Project.objects.get(pk=pk,user_id=user_id)
+#         serializer = ProjectSerializer(project)
+#         project_data = serializer.data
 
-#         return render(request, 'tasks/task_detail.html', {'task': task_data})
+#         return render(request, 'projects/project_detail.html', {'project': project_data})
 
 #     except jwt.InvalidTokenError:
-#         return render(request, 'tasks/error.html', {'error': 'Invalid or expired token. Please log in again.'})
+#         return render(request, 'projects/error.html', {'error': 'Invalid or expired token. Please log in again.'})
 #     except Exception as e:
-#         return render(request, 'tasks/error.html', {'error': f'An error occurred: {str(e)}'})
+#         return render(request, 'projects/error.html', {'error': f'An error occurred: {str(e)}'})
 
-# def create_task(request):
+def create_project(request):
+    access_token = request.session.get('access_token')
+    if not access_token:
+        return redirect('login_page')
+
+    try:
+        payload = jwt.decode(access_token, settings.SECRET_KEY, algorithms=["HS256"])
+        user_id = payload.get('user_id')
+
+        if not user_id:
+            return redirect('login_page')
+
+        if request.method == 'POST':
+            form = ProjectForm(request.POST)
+            if form.is_valid():
+                # Create project with the authenticated user
+                project = form.save(commit=False)
+                project.project_manager_id = user_id
+                project.save()
+                return redirect('project_list')
+        else:
+            form = ProjectForm()
+
+        return render(request, 'projects/project_form.html', {'form': form})
+
+    except jwt.InvalidTokenError:
+        return render(request, 'projects/error.html', {'error': 'Invalid or expired token. Please log in again.'})
+    except Exception as e:
+        return render(request, 'projects/error.html', {'error': f'An error occurred: {str(e)}'})
+
+# def update_project(request, pk):
 #     access_token = request.session.get('access_token')
 #     if not access_token:
 #         return redirect('login_page')
@@ -108,60 +140,30 @@ def project_list(request):
 #         if not user_id:
 #             return redirect('login_page')
 
-#         if request.method == 'POST':
-#             form = TaskForm(request.POST)
-#             if form.is_valid():
-#                 # Create task with the authenticated user
-#                 task = form.save(commit=False)
-#                 task.user_id = user_id
-#                 task.save()
-#                 return redirect('task_list')
-#         else:
-#             form = TaskForm()
-
-#         return render(request, 'tasks/task_form.html', {'form': form})
-
-#     except jwt.InvalidTokenError:
-#         return render(request, 'tasks/error.html', {'error': 'Invalid or expired token. Please log in again.'})
-#     except Exception as e:
-#         return render(request, 'tasks/error.html', {'error': f'An error occurred: {str(e)}'})
-
-# def update_task(request, pk):
-#     access_token = request.session.get('access_token')
-#     if not access_token:
-#         return redirect('login_page')
-
-#     try:
-#         payload = jwt.decode(access_token, settings.SECRET_KEY, algorithms=["HS256"])
-#         user_id = payload.get('user_id')
-
-#         if not user_id:
-#             return redirect('login_page')
-
-#         task = get_object_or_404(Task, pk=pk, user_id=user_id)
+#         project = get_object_or_404(Project, pk=pk, user_id=user_id)
 
 #         if request.method == 'POST':
-#             form = TaskForm(request.POST, instance=task)
+#             form = ProjectForm(request.POST, instance=project)
 #             if form.is_valid():
-#                 updated_task = form.save()        
-#                 return redirect('task_list')
+#                 updated_project = form.save()        
+#                 return redirect('project_list')
 #         else:
-#             form = TaskForm(instance=task)
-#             # Serialize initial task data if needed for the template
-#             serializer = TaskSerializer(task)
-#             task_data = serializer.data
+#             form = ProjectForm(instance=project)
+#             # Serialize initial project data if needed for the template
+#             serializer = ProjectSerializer(project)
+#             project_data = serializer.data
 
-#         return render(request, 'tasks/task_form.html', {
+#         return render(request, 'projects/project_form.html', {
 #             'form': form,
-#             'task': task_data
+#             'project': project_data
 #         })
 
 #     except jwt.InvalidTokenError:
-#         return render(request, 'tasks/error.html', {'error': 'Invalid or expired token. Please log in again.'})
+#         return render(request, 'projects/error.html', {'error': 'Invalid or expired token. Please log in again.'})
 #     except Exception as e:
-#         return render(request, 'tasks/error.html', {'error': f'An error occurred: {str(e)}'})
+#         return render(request, 'projects/error.html', {'error': f'An error occurred: {str(e)}'})
 
-# def delete_task(request, pk):
+# def delete_project(request, pk):
 #     access_token = request.session.get('access_token')
 #     if not access_token:
 #         return redirect('login_page')
@@ -173,13 +175,13 @@ def project_list(request):
 #         if not user_id:
 #             return redirect('login_page')
 
-#         task = get_object_or_404(Task, pk=pk, user_id=user_id)
+#         task = get_object_or_404(Project, pk=pk, user_id=user_id)
 
 #         if request.method == 'POST':
 #             task.delete()
 #             return redirect('task_list')
 
-#         serializer = TaskSerializer(task)
+#         serializer = ProjectSerializer(task)
 #         task_data = serializer.data
 
 #         return render(request, 'tasks/task_confirm_delete.html', {
