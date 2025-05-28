@@ -17,8 +17,16 @@ class Project(models.Model):
         blank=True
     )
 
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
+    
+    class Meta:
+        ordering = ['-created']  
+        verbose_name = 'Project'
+        verbose_name_plural = 'Projects'
+        indexes = [
+            models.Index(fields=['project_manager'])
+        ]
