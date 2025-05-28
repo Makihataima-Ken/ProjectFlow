@@ -8,6 +8,7 @@ from .views import (
     create_project,
     project_detail,
     project_list,
+    update_project,
 )
 
 urlpatterns = [
@@ -21,6 +22,6 @@ urlpatterns = [
     path('projects/', project_list, name='project_list'),
     path('projects/<int:pk>/', project_detail, name='project_detail'),
     path('projects/create/', create_project, name='create_project'),
-    # path('projects/update/<int:pk>/', update_project, name='update_project'),
+    path('projects/update/<int:pk>/', update_project, name='update_project'),
     # path('projects/delete/<int:pk>/', delete_project, name='delete_project'),
 ]

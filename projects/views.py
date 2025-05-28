@@ -128,40 +128,40 @@ def create_project(request):
     except Exception as e:
         return render(request, 'projects/error.html', {'error': f'An error occurred: {str(e)}'})
 
-# def update_project(request, pk):
-#     access_token = request.session.get('access_token')
-#     if not access_token:
-#         return redirect('login_page')
+def update_project(request, pk):
+    access_token = request.session.get('access_token')
+    if not access_token:
+        return redirect('login_page')
 
-#     try:
-#         payload = jwt.decode(access_token, settings.SECRET_KEY, algorithms=["HS256"])
-#         user_id = payload.get('user_id')
+    try:
+        payload = jwt.decode(access_token, settings.SECRET_KEY, algorithms=["HS256"])
+        user_id = payload.get('user_id')
 
-#         if not user_id:
-#             return redirect('login_page')
+        if not user_id:
+            return redirect('login_page')
 
-#         project = get_object_or_404(Project, pk=pk, user_id=user_id)
+        project = get_object_or_404(Project, pk=pk, project_manager_id=user_id)
 
-#         if request.method == 'POST':
-#             form = ProjectForm(request.POST, instance=project)
-#             if form.is_valid():
-#                 updated_project = form.save()        
-#                 return redirect('project_list')
-#         else:
-#             form = ProjectForm(instance=project)
-#             # Serialize initial project data if needed for the template
-#             serializer = ProjectSerializer(project)
-#             project_data = serializer.data
+        if request.method == 'POST':
+            form = ProjectForm(request.POST, instance=project)
+            if form.is_valid():
+                updated_project = form.save()        
+                return redirect('project_list')
+        else:
+            form = ProjectForm(instance=project)
+            # Serialize initial project data if needed for the template
+            serializer = ProjectSerializer(project)
+            project_data = serializer.data
 
-#         return render(request, 'projects/project_form.html', {
-#             'form': form,
-#             'project': project_data
-#         })
+        return render(request, 'projects/project_form.html', {
+            'form': form,
+            'project': project_data
+        })
 
-#     except jwt.InvalidTokenError:
-#         return render(request, 'projects/error.html', {'error': 'Invalid or expired token. Please log in again.'})
-#     except Exception as e:
-#         return render(request, 'projects/error.html', {'error': f'An error occurred: {str(e)}'})
+    except jwt.InvalidTokenError:
+        return render(request, 'projects/error.html', {'error': 'Invalid or expired token. Please log in again.'})
+    except Exception as e:
+        return render(request, 'projects/error.html', {'error': f'An error occurred: {str(e)}'})
 
 # def delete_project(request, pk):
 #     access_token = request.session.get('access_token')

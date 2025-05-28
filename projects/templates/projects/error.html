@@ -18,11 +18,11 @@
                     <h3 class="mt-3">{{ error }}</h3>
                     
                     <div class="mt-4">
-                        <a href="{% url 'task_list' %}" class="btn btn-primary">
-                            <i class="bi bi-arrow-left"></i> Return to Task List
+                        <a href="{% url 'project_list' %}" class="btn btn-primary">
+                            <i class="bi bi-arrow-left"></i> Return to Project List
                         </a>
                         {% if not user.is_authenticated %}
-                        <a href="{% url 'login_page' %}" class="btn btn-outline-secondary ms-2">
+                        <a href="{% url 'login' %}" class="btn btn-outline-secondary ms-2">
                             <i class="bi bi-box-arrow-in-right"></i> Login
                         </a>
                         {% endif %}
