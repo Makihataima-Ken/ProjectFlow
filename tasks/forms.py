@@ -1,17 +1,28 @@
 from django import forms
 from .models import Task
 from projects.models import Project
+# from accounts.models import User  # Adjust if your user model import is different
+
+from django.db.models import Q
 
 class TaskForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        self.project = kwargs.pop('project', None)
-        self.user = kwargs.pop('user', None)
+    def __init__(self, user=None, *args, **kwargs):
+        self.user = user
+        initial = kwargs.get('initial') or {}
+        self.project_instance = initial.get('project') or kwargs.pop('project', None)
+
         super().__init__(*args, **kwargs)
-        
-        if self.project:
-            self.fields['user'].queryset = self.project.participants.all()
-            self.fields['project'].initial = self.project
+
+        if self.user:
+            self.fields['project'].queryset = Project.objects.filter(
+                Q(project_manager=self.user) | Q(participants=self.user)
+            ).distinct()
+
+        if self.project_instance:
+            self.fields['user'].queryset = self.project_instance.participants.all()
+            self.fields['project'].initial = self.project_instance
             self.fields['project'].widget = forms.HiddenInput()
+
 
     class Meta:
         model = Task
