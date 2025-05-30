@@ -205,9 +205,13 @@ def delete_task(request, pk):
     user_id = get_authenticated_user(request)
     if not user_id:
         return redirect('login_page')
-
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return redirect('login_page')
+    
     task = get_object_or_404(Task, pk=pk)
-    if not can_manage_task(request.user, task):
+    if not can_manage_task(user, task):
         return render(request, 'tasks/error.html', {'error': 'Not authorized'})
 
     if request.method == 'POST':

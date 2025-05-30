@@ -6,6 +6,8 @@ A comprehensive Project Management App built with Django that allows users to cr
 - Task Management: Create, read, update, and delete tasks
 - Set due dates 
 - Task Statuses: To Do, In Progress, Done
+- Project Management: Create, read, update, and delete projects
+- Assign tasks to your team members
 ### Technical Features
 - Django REST Framework for API endpoints
 - JWT Authentication
@@ -46,6 +48,13 @@ python manage.py runserver
 - ```tasks/create/```- Create new task
 - ```tasks/update/<int:pk>/```- Update task
 - ```'tasks/delete/<int:pk>/```- Delete task
+- ```'tasks/search/```- Search for tasks
+### Project URLs
+- ```projects/```- List User's projects
+- ```'projects/<int:pk>/```- Task detail view
+- ```projects/create/```- Create new task
+- ```projects/update/<int:pk>/```- Update task
+- ```'projects/delete/<int:pk>/```- Delete task
 ## Templates
 - The application uses Django's template system with Bootstrap 5 for styling. Key templates:
 ### Task Templates
@@ -53,6 +62,11 @@ python manage.py runserver
 - task_detail.html - Detailed task view
 - task_form.html - Create/update form
 - task_confirm_delete.html - Delete confirmation
+### Project Templates
+- project_list.html - Displays all projects
+- project_detail.html - Detailed project view
+- project_form.html - Create/update form
+- project_confirm_delete.html - Delete confirmation
 ### Authentication Templates
 - login.html - Login form
 - register.html - Registration form
