@@ -53,7 +53,8 @@ class TaskAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None):
-        user = request.user
+        user_id = get_authenticated_user(request)
+        user = User.objects.get(user_id)
         if pk:
             task = get_object_or_404(Task, pk=pk)
             if not can_manage_task(user, task):
@@ -74,7 +75,9 @@ class TaskAPIView(APIView):
         serializer = TaskSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             project = serializer.validated_data.get('project')
-            if not project.can_assign_tasks(request.user):
+            user_id = get_authenticated_user(request)
+            user = User.objects.get(user_id)
+            if not project.can_assign_tasks(user):
                 return Response(
                     {'error': 'Not authorized to create tasks in this project'},
                     status=status.HTTP_403_FORBIDDEN
@@ -85,7 +88,9 @@ class TaskAPIView(APIView):
 
     def put(self, request, pk):
         task = get_object_or_404(Task, pk=pk)
-        if not can_manage_task(request.user, task):
+        user_id = get_authenticated_user(request)
+        user = User.objects.get(user_id)
+        if not can_manage_task(user, task):
             return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
             
         serializer = TaskSerializer(task, data=request.data, context={'request': request})
@@ -96,10 +101,77 @@ class TaskAPIView(APIView):
 
     def delete(self, request, pk):
         task = get_object_or_404(Task, pk=pk)
-        if not can_manage_task(request.user, task):
+        user_id = get_authenticated_user(request)
+        user = User.objects.get(user_id)
+        if not can_manage_task(user, task):
             return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
         task.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def get(self, request):
+        user_id = get_authenticated_user(request)
+        user = User.objects.get(user_id)
+        tasks = Task.objects.filter(
+            Q(user=user) | 
+            Q(project__project_manager=user) |
+            Q(project__participants=user)
+        ).distinct()
+
+        # Get query parameters
+        query = request.query_params.get('query')
+        statuses = request.query_params.getlist('status')
+        due_date_filter = request.query_params.get('due_date')
+        projects = request.query_params.getlist('project')
+        assigned_to = request.query_params.getlist('assigned_to')
+        
+        if query:
+            tasks = tasks.filter(
+                Q(title__icontains=query) |
+                Q(description__icontains=query)
+            )
+        
+        if statuses:
+            tasks = tasks.filter(status__in=statuses)
+            
+        if due_date_filter:
+            today = timezone.now().date()
+            if due_date_filter == 'today':
+                tasks = tasks.filter(due_date=today)
+            elif due_date_filter == 'week':
+                end_week = today + timedelta(days=(6 - today.weekday()))
+                tasks = tasks.filter(due_date__range=[today, end_week])
+            elif due_date_filter == 'month':
+                end_month = today.replace(day=28) + timedelta(days=4)
+                end_month = end_month - timedelta(days=end_month.day-1)
+                tasks = tasks.filter(due_date__range=[today, end_month])
+            elif due_date_filter == 'overdue':
+                tasks = tasks.filter(due_date__lt=today)
+            elif due_date_filter == 'future':
+                tasks = tasks.filter(due_date__gt=today)
+            elif due_date_filter == 'no_date':
+                tasks = tasks.filter(due_date__isnull=True)
+        
+        if projects:
+            tasks = tasks.filter(project__in=projects)
+            
+        if assigned_to:
+            tasks = tasks.filter(user__in=assigned_to)
+    
+        # Order by due date (nulls last) and status
+        tasks = tasks.order_by('due_date', 'status')
+        
+        serializer = TaskSerializer(tasks, many=True)
+        return Response({
+            'tasks': serializer.data,
+            'total_count': tasks.count(),
+            'filters_applied': {
+                'query': query,
+                'statuses': statuses,
+                'due_date_filter': due_date_filter,
+                'projects': projects,
+                'assigned_to': assigned_to
+            }
+        })
 
 # ========== HTML VIEWS ==========
 
