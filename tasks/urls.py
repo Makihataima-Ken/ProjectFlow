@@ -8,6 +8,7 @@ from .views import (
     task_detail,
     task_list,
     create_task,
+    task_search,
     update_task,
     delete_task,
 )
@@ -25,4 +26,6 @@ urlpatterns = [
     path('tasks/create/', create_task, name='create_task'),
     path('tasks/update/<int:pk>/', update_task, name='update_task'),
     path('tasks/delete/<int:pk>/', delete_task, name='delete_task'),
+    
+    path('tasks/search/', task_search, name='task_search')
 ]

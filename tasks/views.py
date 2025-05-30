@@ -9,13 +9,16 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from ProjectFlow import settings
 from .models import Task
-from .forms import TaskForm
+from .forms import TaskForm, TaskSearchForm
 from .serializers import TaskSerializer
 from projects.models import Project
 import requests
 import json
 
 from django.db.models import Q
+
+from datetime import date, timedelta
+from django.utils import timezone
 
 from django.contrib.auth import get_user_model
 User = get_user_model()
@@ -235,3 +238,66 @@ def refresh_access_token(request):
     except requests.exceptions.RequestException:
         return False
     return False
+
+
+def task_search(request):
+    user = request.user
+    form = TaskSearchForm(request.GET or None, user=user)
+    
+    tasks = Task.objects.filter(
+        Q(user=user) | 
+        Q(project__project_manager=user) |
+        Q(project__participants=user)
+    ).distinct()
+    
+    if form.is_valid():
+        query = form.cleaned_data.get('query')
+        statuses = form.cleaned_data.get('status')
+        due_date_filter = form.cleaned_data.get('due_date')
+        projects = form.cleaned_data.get('project')
+        assigned_to = form.cleaned_data.get('assigned_to')
+        
+        if query:
+            tasks = tasks.filter(
+                Q(title__icontains=query) |
+                Q(description__icontains=query)
+            )
+        
+        if statuses:
+            tasks = tasks.filter(status__in=statuses)
+            
+        if due_date_filter:
+            today = timezone.now().date()
+            if due_date_filter == 'today':
+                tasks = tasks.filter(due_date=today)
+            elif due_date_filter == 'week':
+                end_week = today + timedelta(days=(6 - today.weekday()))
+                tasks = tasks.filter(due_date__range=[today, end_week])
+            elif due_date_filter == 'month':
+                end_month = today.replace(day=28) + timedelta(days=4)
+                end_month = end_month - timedelta(days=end_month.day-1)
+                tasks = tasks.filter(due_date__range=[today, end_month])
+            elif due_date_filter == 'overdue':
+                tasks = tasks.filter(due_date__lt=today)
+            elif due_date_filter == 'future':
+                tasks = tasks.filter(due_date__gt=today)
+            elif due_date_filter == 'no_date':
+                tasks = tasks.filter(due_date__isnull=True)
+        
+        if projects:
+            tasks = tasks.filter(project__in=projects)
+            
+        if assigned_to:
+            tasks = tasks.filter(user__in=assigned_to)
+    
+    # Order by due date (nulls last) and status
+    tasks = tasks.order_by(
+        'due_date',
+        'status'
+    )
+    
+    return render(request, 'tasks/task_search.html', {
+        'form': form,
+        'tasks': tasks,
+        'search_performed': any(field in request.GET for field in form.fields)
+    })
