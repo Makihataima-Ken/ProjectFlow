@@ -11,6 +11,7 @@ from ProjectFlow import settings
 from .models import Task
 from .forms import TaskForm, TaskSearchForm
 from .serializers import TaskSerializer
+from .permissions import IsTaskManagerOrStaff, IsTaskParticipant, CanSearchTasks
 from projects.models import Project
 import requests
 import json
@@ -50,15 +51,14 @@ def can_manage_task(user, task):
 
 class TaskAPIView(APIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsTaskManagerOrStaff]
 
     def get(self, request, pk=None):
         user_id = get_authenticated_user(request)
         user = User.objects.get(user_id)
         if pk:
             task = get_object_or_404(Task, pk=pk)
-            if not can_manage_task(user, task):
-                return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+            self.check_object_permissions(request, task)
             serializer = TaskSerializer(task)
             return Response(serializer.data)
         
@@ -77,22 +77,14 @@ class TaskAPIView(APIView):
             project = serializer.validated_data.get('project')
             user_id = get_authenticated_user(request)
             user = User.objects.get(user_id)
-            if not project.can_assign_tasks(user):
-                return Response(
-                    {'error': 'Not authorized to create tasks in this project'},
-                    status=status.HTTP_403_FORBIDDEN
-                )
+            self.check_object_permissions(request, project)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, pk):
         task = get_object_or_404(Task, pk=pk)
-        user_id = get_authenticated_user(request)
-        user = User.objects.get(user_id)
-        if not can_manage_task(user, task):
-            return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
-            
+        self.check_object_permissions(request, task)
         serializer = TaskSerializer(task, data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
@@ -101,12 +93,13 @@ class TaskAPIView(APIView):
 
     def delete(self, request, pk):
         task = get_object_or_404(Task, pk=pk)
-        user_id = get_authenticated_user(request)
-        user = User.objects.get(user_id)
-        if not can_manage_task(user, task):
-            return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        self.check_object_permissions(request, task)
         task.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class TaskSearchAPIView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, CanSearchTasks]
 
     def get(self, request):
         user_id = get_authenticated_user(request)
