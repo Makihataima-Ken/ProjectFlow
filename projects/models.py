@@ -30,3 +30,9 @@ class Project(models.Model):
         indexes = [
             models.Index(fields=['project_manager'])
         ]
+        
+    def is_manager(self, user):
+        return self.project_manager == user
+    
+    def can_assign_tasks(self, user):
+        return self.is_manager(user) or user.is_staff

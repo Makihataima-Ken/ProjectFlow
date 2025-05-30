@@ -43,7 +43,7 @@
           <div class="mb-4">
             <h5 class="text-muted"><i class="bi bi-people-fill"></i> Team Members</h5>
             <div class="d-flex flex-wrap gap-2">
-              {% for user in project.participants.all %}
+              {% for user in project.participants %}
                 <span class="badge bg-secondary">
                   <i class="bi bi-person"></i> {{ user.username }}
                   {% if user.email %}({{ user.email }}){% endif %}
@@ -53,16 +53,30 @@
               {% endfor %}
             </div>
           </div>
+
+          <!-- Tasks -->
+          <div class="mb-4">
+            <h5 class="text-muted"><i class="bi bi-kanban-fill"></i> Tasks</h5>
+            <div class="d-flex flex-wrap gap-2">
+              {% for task in project.tasks %}
+                <span class="badge bg-secondary">
+                  <i class="bi bi-kanban"></i> {{ task.title }}
+                </span>
+              {% empty %}
+                <p class="text-muted">No tasks assigned</p>
+              {% endfor %}
+            </div>
+          </div>
           
           <!-- Dates -->
           <div class="row mb-3">
             <div class="col-md-6">
               <h5 class="text-muted"><i class="bi bi-calendar-plus"></i> Created</h5>
-              <p>{{ project.created|date:"M d, Y H:i" }}</p>
+              <p class="mb-0">{{ project.updated}}</p>
             </div>
             <div class="col-md-6">
               <h5 class="text-muted"><i class="bi bi-calendar-check"></i> Last Updated</h5>
-              <p>{{ project.updated|date:"M d, Y H:i" }}</p>
+              <p>{{ project.updated}}</p>
             </div>
           </div>
         </div>
