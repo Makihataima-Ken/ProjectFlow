@@ -171,7 +171,6 @@ def update_project(request, pk):
         form = ProjectForm(user, request.POST, instance=project)
         if form.is_valid():
             form.save()
-            form.save_m2m()  # Save participants
             return redirect('project_detail', pk=project.pk)
     else:
         form = ProjectForm(user, instance=project)
