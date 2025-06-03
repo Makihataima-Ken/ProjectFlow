@@ -191,11 +191,17 @@ def task_list(request):
 
 def task_detail(request, pk):
     user_id = get_authenticated_user(request)
+    
     if not user_id:
+        return redirect('login_page')
+    
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
         return redirect('login_page')
 
     task = get_object_or_404(Task, pk=pk)
-    if not can_manage_task(request.user, task):
+    if not can_manage_task(user, task):
         return render(request, 'tasks/error.html', {'error': 'Not authorized'})
 
     serializer = TaskSerializer(task)
@@ -259,7 +265,7 @@ def update_task(request, pk):
             form.save()
             return redirect('task_list')
     else:
-        form = TaskForm(request.user, instance=task)
+        form = TaskForm(user=user, instance=task)
 
     return render(request, 'tasks/task_form.html', {
         'form': form,
