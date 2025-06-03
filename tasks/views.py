@@ -45,7 +45,15 @@ def get_authenticated_user(request):
 def can_manage_task(user, task):
     """Check if user can manage this task"""
     return (
-            task.project.project_manager == user)
+            task.project.project_manager == user
+            or task.user == user)
+    
+def can_view_task(user, task):
+    """Check if user can manage this task"""
+    return (
+            task.project.project_manager == user or
+        user in task.project.participants.all() or
+        user.is_staff)
 
 # ========== API VIEWS ==========
 
@@ -201,7 +209,7 @@ def task_detail(request, pk):
         return redirect('login_page')
 
     task = get_object_or_404(Task, pk=pk)
-    if not can_manage_task(user, task):
+    if not can_view_task(user, task):
         return render(request, 'tasks/error.html', {'error': 'Not authorized'})
 
     serializer = TaskSerializer(task)
