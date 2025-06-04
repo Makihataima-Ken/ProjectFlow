@@ -213,9 +213,10 @@ def task_detail(request, pk):
         return render(request, 'tasks/error.html', {'error': 'Not authorized'})
 
     serializer = TaskSerializer(task)
+    print(serializer.data)
     return render(request, 'tasks/task_detail.html', {
         'task': serializer.data,
-        'can_edit': can_manage_task(request.user, task)
+        'can_edit': can_manage_task(user, task)
     })
 
 def create_task(request, project_id=None):

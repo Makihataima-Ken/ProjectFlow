@@ -52,3 +52,10 @@ class Task(models.Model):
         if self.user not in self.project.participants.all():
             from django.core.exceptions import ValidationError
             raise ValidationError("Assigned user must be a participant of the project.")
+        
+    @property
+    def is_overdue(self):
+        if self.due_date:
+            from django.utils import timezone
+            return self.due_date < timezone.now().date()
+        return False
