@@ -325,7 +325,15 @@ def refresh_access_token(request):
 
 
 def task_search(request):
-    user = request.user
+    user_id = get_authenticated_user(request)
+    if not user_id:
+        return redirect('login_page')
+    
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return redirect('login_page')
+    
     form = TaskSearchForm(request.GET or None, user=user)
     
     tasks = Task.objects.filter(
