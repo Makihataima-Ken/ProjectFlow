@@ -1,0 +1,53 @@
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4>Comments for {{ task.title }}</h4>
+        </div>
+        
+        <div class="card-body">
+            <!-- Comment List -->
+            <div id="comment-list">
+                {% include 'tasks/partials/comment_list.html' %}
+            </div>
+            
+            <!-- Comment Form -->
+            <form method="post" enctype="multipart/form-data" id="comment-form">
+                {% csrf_token %}
+                {{ comment_form.as_p }}
+                
+                {% comment %} <div class="mb-3">
+                    <label class="form-label">Attachments</label>
+                    <input type="file" name="files" multiple class="form-control">
+                </div> {% endcomment %}
+                
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-send"></i> Post Comment
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Example AJAX submission
+$('#comment-form').on('submit', function(e) {
+    e.preventDefault();
+    let formData = new FormData(this);
+    
+    $.ajax({
+        url: "{% url 'task_comments' task.id %}",
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(data) {
+            $('#comment-list').load("{% url 'comment_list' task.id %}");
+            $('#id_content').val('');
+        }
+    });
+});
+</script>
+{% endblock %}

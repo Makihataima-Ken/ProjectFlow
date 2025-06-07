@@ -2,10 +2,12 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 
+from tasks.models import Task
+
 class Comment(models.Model):
     """Model representing comments on tasks"""
     task = models.ForeignKey(
-        'Task',
+        Task,
         related_name='comments',
         on_delete=models.CASCADE,
         verbose_name='Related Task'
