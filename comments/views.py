@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.generic import View
 from django.http import JsonResponse
+from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -14,6 +15,24 @@ from tasks.models import Task
 from .forms import CommentForm
 # from .forms import AttachmentForm
 from .serializers import CommentSerializer
+
+
+from ProjectFlow import settings
+import jwt
+
+User = get_user_model()
+
+def get_authenticated_user(request):
+    """Helper function to get user from JWT token"""
+    access_token = request.session.get('access_token')
+    if not access_token:
+        return None
+    
+    try:
+        payload = jwt.decode(access_token, settings.SECRET_KEY, algorithms=["HS256"])
+        return User.objects.get(pk=payload.get('user_id'))
+    except (jwt.InvalidTokenError, User.DoesNotExist):
+        return None
 
 class CommentAPIView(APIView):
     authentication_classes = [JWTAuthentication]
@@ -47,8 +66,9 @@ class CommentAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@login_required
 def task_comments(request, pk):
+    user = get_authenticated_user(request=request)
+    
     task = get_object_or_404(Task, pk=pk)
     
     if request.method == 'POST':
@@ -58,7 +78,7 @@ def task_comments(request, pk):
         if comment_form.is_valid():
             comment = comment_form.save(commit=False)
             comment.task = task
-            comment.author = request.user
+            comment.author = user
             comment.save()
             
             # if attachment_form.is_valid():
