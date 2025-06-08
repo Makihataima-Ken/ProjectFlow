@@ -36,6 +36,16 @@ class Task(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     
+    def can_user_manage(self, user):
+        """Check if user can manage this task"""
+        if not hasattr(self, 'project') or not self.project:
+            return False
+        
+        return (
+            self.project.project_manager == user or
+            self.user == user 
+        )
+    
     def __str__(self):
         return f"{self.title} ({self.get_status_display()})"
     

@@ -27,18 +27,15 @@ User = get_user_model()
 # ========== Helper Functions ==========
 
 def get_authenticated_user(request):
-    """Helper to get user from JWT token"""
-    if not hasattr(request, 'session'):
-        return None
-
+    """Helper function to get user from JWT token"""
     access_token = request.session.get('access_token')
     if not access_token:
         return None
-
+    
     try:
         payload = jwt.decode(access_token, settings.SECRET_KEY, algorithms=["HS256"])
-        return payload.get('user_id')
-    except jwt.InvalidTokenError:
+        return User.objects.get(pk=payload.get('user_id'))
+    except (jwt.InvalidTokenError, User.DoesNotExist):
         return None
 
 
@@ -62,8 +59,8 @@ class TaskAPIView(APIView):
     permission_classes = [IsAuthenticated, IsTaskManagerOrStaff]
 
     def get(self, request, pk=None):
-        user_id = get_authenticated_user(request)
-        user = User.objects.get(user_id)
+        user = get_authenticated_user(request)
+        
         if pk:
             task = get_object_or_404(Task, pk=pk)
             self.check_object_permissions(request, task)
@@ -83,8 +80,7 @@ class TaskAPIView(APIView):
         serializer = TaskSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             project = serializer.validated_data.get('project')
-            user_id = get_authenticated_user(request)
-            user = User.objects.get(user_id)
+            user= get_authenticated_user(request)
             self.check_object_permissions(request, project)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -110,8 +106,7 @@ class TaskSearchAPIView(APIView):
     permission_classes = [IsAuthenticated, CanSearchTasks]
 
     def get(self, request):
-        user_id = get_authenticated_user(request)
-        user = User.objects.get(user_id)
+        user = get_authenticated_user(request)
         tasks = Task.objects.filter(
             Q(user=user) | 
             Q(project__project_manager=user) |
@@ -177,15 +172,14 @@ class TaskSearchAPIView(APIView):
 # ========== HTML VIEWS ==========
 
 def task_list(request):
-    user_id = get_authenticated_user(request)
-    if not user_id:
+    user = get_authenticated_user(request)
+    if not user:
         return redirect('login_page')
 
     try:
         tasks = Task.objects.filter(
-            Q(user_id=user_id) | 
-            Q(project__project_manager_id=user_id) |
-            Q(project__participants=user_id)
+            Q(project__project_manager=user) |
+            Q(project__participants=user.id)
         ).distinct()
         
         serializer = TaskSerializer(tasks, many=True)
@@ -198,14 +192,9 @@ def task_list(request):
         return render(request, 'tasks/error.html', {'error': str(e)})
 
 def task_detail(request, pk):
-    user_id = get_authenticated_user(request)
+    user= get_authenticated_user(request)
     
-    if not user_id:
-        return redirect('login_page')
-    
-    try:
-        user = User.objects.get(pk=user_id)
-    except User.DoesNotExist:
+    if not user:
         return redirect('login_page')
 
     task = get_object_or_404(Task, pk=pk)
@@ -220,13 +209,8 @@ def task_detail(request, pk):
     })
 
 def create_task(request, project_id=None):
-    user_id = get_authenticated_user(request)
-    if not user_id:
-        return redirect('login_page')
-
-    try:
-        user = User.objects.get(pk=user_id)
-    except User.DoesNotExist:
+    user= get_authenticated_user(request)
+    if not user:
         return redirect('login_page')
 
     project = None
@@ -254,18 +238,13 @@ def create_task(request, project_id=None):
     })
 
 def update_task(request, pk):
-    user_id = get_authenticated_user(request)
-    if not user_id:
-        return redirect('login_page')
-    
-    try:
-        user = User.objects.get(pk=user_id)
-    except User.DoesNotExist:
+    user= get_authenticated_user(request)
+    if not user:
         return redirect('login_page')
 
     task = get_object_or_404(Task, pk=pk)
     
-    if not can_manage_task(user, task):
+    if not task.can_user_manage(user):
         return render(request, 'tasks/error.html', {'error': 'Not authorized'})
 
     if request.method == 'POST':
@@ -282,12 +261,8 @@ def update_task(request, pk):
     })
 
 def delete_task(request, pk):
-    user_id = get_authenticated_user(request)
-    if not user_id:
-        return redirect('login_page')
-    try:
-        user = User.objects.get(pk=user_id)
-    except User.DoesNotExist:
+    user= get_authenticated_user(request)
+    if not user:
         return redirect('login_page')
     
     task = get_object_or_404(Task, pk=pk)
@@ -325,13 +300,8 @@ def refresh_access_token(request):
 
 
 def task_search(request):
-    user_id = get_authenticated_user(request)
-    if not user_id:
-        return redirect('login_page')
-    
-    try:
-        user = User.objects.get(pk=user_id)
-    except User.DoesNotExist:
+    user= get_authenticated_user(request)
+    if not user:
         return redirect('login_page')
     
     form = TaskSearchForm(request.GET or None, user=user)
