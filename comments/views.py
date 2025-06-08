@@ -110,7 +110,8 @@ def task_comments(request, task_id):
 class CommentView(View):
     def get(self, request, pk):
         task = get_object_or_404(Task, pk=pk)
-        comments = task.comments.all().select_related('author').prefetch_related('attachments')
+        comments = task.comments.all().select_related('author')
+        # .prefetch_related('attachments')
         return render(request, 'tasks/partials/comment_list.html', {
             'comments': comments
         })
@@ -138,9 +139,13 @@ class CommentView(View):
             'errors': form.errors
         }, status=400)
 
-@login_required
+
 def delete_comment(request, comment_id):
-    comment = get_object_or_404(Comment, pk=comment_id, author=request.user)
+    user = get_authenticated_user(request=request)
+    if not user:
+        return redirect('login_page')
+    
+    comment = get_object_or_404(Comment, pk=comment_id, author=user)
     task_id = comment.task.id
     comment.delete()
     return redirect('task_detail', pk=task_id)

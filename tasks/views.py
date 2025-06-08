@@ -223,6 +223,8 @@ def create_task(request, project_id=None):
         form = TaskForm(user=user, data=request.POST)
         if form.is_valid():
             task = form.save(commit=False)
+            if not task.user:
+                task.user = user
             if project:
                 task.project = project
             task.save()

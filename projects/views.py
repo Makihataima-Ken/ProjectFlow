@@ -139,7 +139,8 @@ def project_detail(request, pk):
         return redirect('login_page')
 
     project = get_object_or_404(Project,pk=pk)
-    
+    serializer=ProjectSerializer(project)
+    print(serializer.data)
     if not can_view_project(user,project):
         return render(request, 'projects/error.html', {'error': 'Not authorized'})
     

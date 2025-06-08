@@ -48,7 +48,7 @@
           <!-- Assigned User -->
           <div class="mb-3">
             <h5 class="text-muted">Assigned To</h5>
-            <p class="lead">{{ task.user.username }}</p>
+            <p class="lead">{{ task.user.username | default:"null" }}</p>
           </div>
 
           <!-- Description -->
