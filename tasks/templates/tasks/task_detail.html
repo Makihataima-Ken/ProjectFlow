@@ -70,21 +70,18 @@
           </div>
 
           <!-- Due Date -->
-          {% if task.due_date %}
-          <div
-            class="alert {% if task.status != 'DN' and task.is_overdue %}alert-danger{% else %}alert-info{% endif %}"
-          >
-            <div class="d-flex align-items-center">
-              <i class="bi bi-calendar-event me-2"></i>
-              <div>
-                <strong>Due Date:</strong> {{ task.due_date}} {% if task.status
-                != 'DN' and task.is_overdue %}
-                <span class="badge bg-danger ms-2">Overdue</span>
-                {% endif %}
-              </div>
+        {% if task.due_date %}
+        <div class="alert {% if task.status != 'DN' and task.is_overdue %}alert-danger{% else %}alert-info{% endif %}">
+          <div class="d-flex align-items-center">
+            <i class="bi bi-calendar-event me-2"></i>
+            <div>
+              <strong>Due Date:</strong> {{ task.due_date}} {% if task.status != 'DN' and task.is_overdue %}
+              <span class="badge bg-danger ms-2">Overdue</span>
+              {% endif %}
             </div>
           </div>
-          {% endif %}
+        </div>
+        {% endif %}
         </div>
       </div>
 

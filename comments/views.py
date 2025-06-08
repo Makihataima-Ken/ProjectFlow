@@ -66,10 +66,12 @@ class CommentAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-def task_comments(request, pk):
+def task_comments(request, task_id):
     user = get_authenticated_user(request=request)
+    if not user:
+        return redirect('login_page')
     
-    task = get_object_or_404(Task, pk=pk)
+    task = get_object_or_404(Task, pk=task_id)
     
     if request.method == 'POST':
         comment_form = CommentForm(request.POST)
@@ -90,12 +92,13 @@ def task_comments(request, pk):
             #         )
             #         comment.attachments.add(attachment)
             
-            return redirect('task_detail', pk=pk)
+            return redirect('task_detail', pk=task_id)
     else:
         comment_form = CommentForm()
         # attachment_form = AttachmentForm()
     
-    comments = task.comments.all().select_related('author').prefetch_related('attachments')
+    comments = task.comments.all().select_related('author')
+    # .prefetch_related('attachments')
     
     return render(request, 'tasks/comments.html', {
         'task': task,

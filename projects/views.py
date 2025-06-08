@@ -126,8 +126,9 @@ def project_detail(request, pk):
 
     project = get_object_or_404(
         Project.objects.filter(
-            Q(project_manager=user)
-        ),
+            Q(project_manager=user),
+            Q(participants=user)
+        ).distinct(),
         pk=pk
     )
     serializer = ProjectSerializer(project, context={'request': request})
