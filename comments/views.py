@@ -48,11 +48,16 @@ class CommentAPIView(APIView):
         return Response([], status=status.HTTP_200_OK)
 
     def post(self, request, pk):
+        
+        user = get_authenticated_user(request=request)
+        if not user:
+            return redirect('login_page')
+        
         task = get_object_or_404(Task, pk=pk)
         serializer = CommentSerializer(data=request.data, context={'request': request})
         
         if serializer.is_valid():
-            comment = serializer.save(task=task, author=request.user)
+            comment = serializer.save(task=task, author=user)
             
             # Handle attachments
             # if 'attachments' in request.FILES:
@@ -117,13 +122,18 @@ class CommentView(View):
         })
 
     def post(self, request, pk):
+        
+        user = get_authenticated_user(request=request)
+        if not user:
+            return redirect('login_page')
+        
         task = get_object_or_404(Task, pk=pk)
         form = CommentForm(request.POST)
         
         if form.is_valid():
             comment = form.save(commit=False)
             comment.task = task
-            comment.author = request.user
+            comment.author = user
             comment.save()
             
             # Handle mentions
