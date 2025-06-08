@@ -5,12 +5,23 @@ from projects.models import Project
 
 User = get_user_model()
 
+class UserSummarySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email']
+
+class ProjectSummarySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = ['id', 'name']  # Add other relevant fields
+
 class TaskSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source='get_status_display', read_only=True)
-    user = serializers.PrimaryKeyRelatedField(read_only=True)
-    project = serializers.PrimaryKeyRelatedField(queryset=Project.objects.all())
+    user = UserSummarySerializer(read_only=True)
+    project = ProjectSummarySerializer()
+
     is_overdue = serializers.BooleanField(read_only=True)
-    
+
     class Meta:
         model = Task
         fields = [
@@ -27,6 +38,7 @@ class TaskSerializer(serializers.ModelSerializer):
             'is_overdue'
         ]
         read_only_fields = ['user', 'created', 'updated', 'is_overdue']
+
     
     def validate_status(self, value):
         """Validate status field against enum choices"""
@@ -34,15 +46,3 @@ class TaskSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Invalid status value")
         return value
     
-    def validate(self, data):
-        """
-        Validate that the assigned user is a participant of the project
-        """
-        project = data.get('project', self.instance.project if self.instance else None)
-        user = self.context['request'].user
-        
-        if project and user not in project.participants.all():
-            raise serializers.ValidationError(
-                "Assigned user must be a participant of the project"
-            )
-        return data
