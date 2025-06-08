@@ -27,6 +27,19 @@ def get_authenticated_user(request):
         return User.objects.get(pk=payload.get('user_id'))
     except (jwt.InvalidTokenError, User.DoesNotExist):
         return None
+    
+def can_manage_project(user, project):
+    """Check if user can manage this project"""
+    return (
+            project.project_manager == user
+            )
+    
+def can_view_project(user, project):
+    """Check if user can manage this project"""
+    return (
+            project.project_manager == user or
+        user in project.participants.all() or
+        user.is_staff)
 
 # ========== API VIEWS ==========
 
@@ -116,7 +129,8 @@ def project_list(request):
     serializer = ProjectSerializer(projects, many=True, context={'request': request})
     return render(request, 'projects/project_list.html', {
         'projects': serializer.data,
-        'is_staff': user.is_staff
+        'is_staff': user.is_staff,
+        'current_user':user    
     })
 
 def project_detail(request, pk):
@@ -124,13 +138,11 @@ def project_detail(request, pk):
     if not user:
         return redirect('login_page')
 
-    project = get_object_or_404(
-        Project.objects.filter(
-            Q(project_manager=user),
-            Q(participants=user)
-        ).distinct(),
-        pk=pk
-    )
+    project = get_object_or_404(Project,pk=pk)
+    
+    if not can_view_project(user,project):
+        return render(request, 'projects/error.html', {'error': 'Not authorized'})
+    
     serializer = ProjectSerializer(project, context={'request': request})
     return render(request, 'projects/project_detail.html', {
         'project': serializer.data,
