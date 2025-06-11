@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 
 from django.core.paginator import Paginator
 from rest_framework.decorators import api_view, permission_classes
@@ -93,13 +93,17 @@ class TaskLogAPIView(APIView):
         })
 
 # HTML View
-@api_view(['GET'])
+# @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsTaskParticipant])
 def task_logs_view(request, task_id):
+    user = get_authenticated_user(request=request)
+    if not user:
+        return redirect('login_page')
+    
     task = get_object_or_404(Task, pk=task_id)
     
-    if not can_view_task(request.user, task):
-        return render(request, 'tasks/error.html', {'error': 'Not authorized'})
+    # if not can_view_task(user, task):
+    #     return render(request, 'tasks/error.html', {'error': 'Not authorized'})
     
     logs = TaskLog.objects.filter(task=task).order_by('-timestamp')
     

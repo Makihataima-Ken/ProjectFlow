@@ -67,7 +67,9 @@ class TaskLog(models.Model):
     
         
     def get_actions_display(self):
-        return {action: label for action, label in self.ActionType.choices}
+        """Returns list of full action names"""
+        action_map = dict(self.ActionType.choices)
+        return [action_map.get(action, action) for action in self.actions]
     
     class Meta:
         ordering = ['-timestamp']
