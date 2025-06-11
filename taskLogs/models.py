@@ -1,9 +1,8 @@
 from django.db import models
 
-# Create your models here.
-from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.db.models import JSONField
 
 class TaskLog(models.Model):
     class ActionType(models.TextChoices):
@@ -13,6 +12,8 @@ class TaskLog(models.Model):
         DELETE = 'DL', 'Deleted'
         ASSIGNEE_CHANGE = 'AC', 'Assignee Changed'
         DUE_DATE_CHANGE = 'DC', 'Due Date Changed'
+        DESCRIPTION_CHANGE = 'DE', 'Description Changed'
+        TITLE_CHANGE = 'TC', 'Title Changed'
     
     task = models.ForeignKey(
         'Task',
@@ -28,9 +29,10 @@ class TaskLog(models.Model):
         blank=True
     )
     
-    action = models.CharField(
-        max_length=2,
-        choices=ActionType.choices
+    action = JSONField(
+        models.CharField(max_length=2, choices=ActionType.choices),
+        default=list,
+        blank=True
     )
     
     field_changed = models.CharField(
@@ -61,6 +63,10 @@ class TaskLog(models.Model):
     def __str__(self):
         return f"{self.get_action_display()} on {self.task.title} by {self.user.username if self.user else 'system'}"
     
+        
+    def get_actions_display(self):
+        return {action: label for action, label in self.ActionType.choices}
+    
     class Meta:
         ordering = ['-timestamp']
         verbose_name = 'Task Log'
@@ -68,6 +74,5 @@ class TaskLog(models.Model):
         indexes = [
             models.Index(fields=['task']),
             models.Index(fields=['user']),
-            models.Index(fields=['action']),
             models.Index(fields=['timestamp']),
         ]
