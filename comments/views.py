@@ -1,3 +1,4 @@
+from datetime import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.generic import View
@@ -109,8 +110,50 @@ def task_comments(request, task_id):
         'task': task,
         'comments': comments,
         'comment_form': comment_form,
+        'user':user,
         # 'attachment_form': attachment_form
     })
+    
+def update_comment(request, comment_id):
+    user = get_authenticated_user(request)
+    if not user:
+        return JsonResponse({'error': 'Authentication required'}, status=401)
+    
+    comment = get_object_or_404(Comment, pk=comment_id)
+    
+    if comment.author != user:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    if request.method == 'POST':
+        form = CommentForm(request.POST, instance=comment)
+        if form.is_valid():
+            updated_comment = form.save(commit=False)
+            updated_comment.updated_at = timezone.now()
+            updated_comment.save()
+            # updated_comment.parse_mentions()
+            
+            # if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            #     comments = Comment.objects.filter(task=comment.task).order_by('-created_at')
+            #     return JsonResponse({
+            #         'comments_html': render_to_string('comments/comment_list.html', {
+            #             'comments': comments,
+            #             'task': comment.task,
+            #             'user': request.user
+            #         }, request=request)
+            #     })
+            return redirect('task_comments', task_id=comment.task.id)
+        
+        return JsonResponse({'errors': form.errors}, status=400)
+    
+    # # GET request - return edit form
+    # if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+    #     return JsonResponse({
+    #         'form_html': render_to_string('comments/edit_form.html', {
+    #             'comment': comment
+    #         }, request=request)
+    #     })
+    
+    return render(request, 'comments/edit_form.html', {'comment': comment})
 
 class CommentView(View):
     def get(self, request, pk):
