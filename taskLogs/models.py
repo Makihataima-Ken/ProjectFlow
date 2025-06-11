@@ -4,6 +4,8 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db.models import JSONField
 
+from tasks.models import Task
+
 class TaskLog(models.Model):
     class ActionType(models.TextChoices):
         CREATE = 'CR', 'Created'
@@ -16,7 +18,7 @@ class TaskLog(models.Model):
         TITLE_CHANGE = 'TC', 'Title Changed'
     
     task = models.ForeignKey(
-        'Task',
+        Task,
         related_name='logs',
         on_delete=models.CASCADE
     )
@@ -29,7 +31,7 @@ class TaskLog(models.Model):
         blank=True
     )
     
-    action = JSONField(
+    actions = JSONField(
         models.CharField(max_length=2, choices=ActionType.choices),
         default=list,
         blank=True
