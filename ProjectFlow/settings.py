@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'accounts',
     'comments',
     'tasks',
+    'taskLogs',
     'projects',
     'rest_framework',
     'rest_framework_simplejwt'
