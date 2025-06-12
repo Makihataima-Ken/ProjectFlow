@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 from ProjectFlow import settings
+from django.urls import reverse
 from projects.models import Project
 
 class Task(models.Model):
@@ -69,3 +70,6 @@ class Task(models.Model):
             from django.utils import timezone
             return self.due_date < timezone.now().date()
         return False
+    
+    def get_absolute_url(self):
+        return reverse('task_detail', args=[str(self.id)])
