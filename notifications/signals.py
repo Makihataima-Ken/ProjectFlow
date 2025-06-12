@@ -1,7 +1,8 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
-from tasks.models import Task, TaskFollower
+from tasks.models import Task
+from taskFollowers.models import TaskFollower
 from comments.models import Comment
 from notifications.models import Notification
 
@@ -37,8 +38,11 @@ def task_notification(sender, instance, created, **kwargs):
                 task=instance
             )
     else:
-        # For status changes
-        if 'status' in kwargs.get('update_fields', []) or kwargs.get('force_notify', False):
+        # Get update_fields safely, defaulting to empty list if None
+        update_fields = kwargs.get('update_fields') or []
+        
+        # For status changes or forced notifications
+        if 'status' in update_fields or kwargs.get('force_notify', False):
             if instance.status == 'DN':  # Task completed
                 for recipient in recipients:
                     Notification.objects.create(
