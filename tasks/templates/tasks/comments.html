@@ -1,13 +1,7 @@
 {% load static %}
 <head>
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-  />
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
-  />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
 
 {% block content %}
@@ -19,11 +13,7 @@
           <i class="bi bi-arrow-left"></i> Back to Task
         </a>
         <h2 class="mb-0">Comments for {{ task.title }}</h2>
-        <button
-          class="btn btn-light btn-sm"
-          data-bs-toggle="collapse"
-          data-bs-target="#commentForm"
-        >
+        <button class="btn btn-light btn-sm" data-bs-toggle="collapse" data-bs-target="#commentForm">
           <i class="bi bi-plus"></i> Add Comment
         </button>
       </div>
@@ -31,54 +21,57 @@
 
     <div class="card-body">
       <!-- Comment List -->
-      <!-- Replace the current comment list item with this -->
-      <div class="list-group-item" id="comment-{{ comment.id }}">
-        {% if not edit_mode %}
-        <div class="d-flex justify-content-between align-items-start mb-2">
-          <div>
-            <strong>{{ comment.author.username }}</strong>
-            <span class="text-muted ms-2 small">
-              {{ comment.created_at|timesince }} ago {% if comment.updated_at >
-              comment.created_at %} (edited) {% endif %}
-            </span>
-          </div>
-          {% if comment.author.id == user.id %}
-          <div class="btn-group btn-group-sm">
-            <button
-              class="btn btn-outline-primary btn-sm edit-comment-btn"
-              data-comment-id="{{ comment.id }}"
-            >
-              <i class="bi bi-pencil"></i> Edit
-            </button>
-            <a
-              href="{% url 'delete_comment' comment.id %}"
-              class="btn btn-outline-danger btn-sm"
-              onclick="return confirm('Delete this comment?')"
-            >
-              <i class="bi bi-trash"></i> Delete
-            </a>
-          </div>
-          {% endif %}
-        </div>
-        <p class="mb-2">{{ comment.content }}</p>
+      <div id="comment-list">
+        {% if comments %}
+          {% for comment in comments %}
+          <div class="list-group-item mb-3" id="comment-{{ comment.id }}">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <strong>{{ comment.author.username }}</strong>
+                <span class="text-muted ms-2 small">
+                  {{ comment.created_at|timesince }} ago 
+                  {% if comment.updated_at > comment.created_at %} 
+                    (edited) 
+                  {% endif %}
+                </span>
+              </div>
+              {% if comment.author.id == user.id %}
+              <div class="btn-group btn-group-sm">
+                <a href="{% url 'update_comment' comment.id %}" 
+                   class="btn btn-outline-primary btn-sm">
+                  <i class="bi bi-pencil"></i> Edit
+                </a>
+                <a href="{% url 'delete_comment' comment.id %}" 
+                   class="btn btn-outline-danger btn-sm"
+                   onclick="return confirm('Delete this comment?')">
+                  <i class="bi bi-trash"></i> Delete
+                </a>
+              </div>
+              {% endif %}
+            </div>
+            <p class="mb-2">{{ comment.content }}</p>
 
-        {% if comment.attachments.all %}
-        <div class="mt-2">
-          <small class="text-muted">Attachments:</small>
-          <div class="d-flex flex-wrap gap-2 mt-1">
-            {% for file in comment.attachments.all %}
-            <a
-              href="{{ file.file.url }}"
-              target="_blank"
-              class="badge bg-light text-dark text-decoration-none"
-            >
-              <i class="bi bi-file-earmark me-1"></i>{{ file.filename }}
-            </a>
-            {% endfor %}
+            {% if comment.attachments.all %}
+            <div class="mt-2">
+              <small class="text-muted">Attachments:</small>
+              <div class="d-flex flex-wrap gap-2 mt-1">
+                {% for file in comment.attachments.all %}
+                <a href="{{ file.file.url }}" 
+                   target="_blank" 
+                   class="badge bg-light text-dark text-decoration-none">
+                  <i class="bi bi-file-earmark me-1"></i>{{ file.filename }}
+                </a>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
           </div>
-        </div>
-        {% endif %} {% else %}
-        <!-- Edit form will appear here -->
+          {% endfor %}
+        {% else %}
+          <div class="text-center py-4">
+            <i class="bi bi-chat-square-text text-muted" style="font-size: 2rem;"></i>
+            <p class="text-muted mt-2">No comments yet. Be the first to comment!</p>
+          </div>
         {% endif %}
       </div>
 
@@ -89,26 +82,12 @@
             {% csrf_token %}
             <div class="mb-3">
               <label for="id_content" class="form-label">Your Comment</label>
-              <textarea
-                name="content"
-                id="id_content"
-                class="form-control"
-                rows="3"
-                required
-              ></textarea>
+              <textarea name="content" id="id_content" class="form-control" rows="3" required></textarea>
             </div>
 
             <div class="mb-3">
-              <label for="id_files" class="form-label"
-                >Attachments (optional)</label
-              >
-              <input
-                type="file"
-                name="files"
-                id="id_files"
-                multiple
-                class="form-control"
-              />
+              <label for="id_files" class="form-label">Attachments (optional)</label>
+              <input type="file" name="files" id="id_files" multiple class="form-control">
               <div class="form-text">You can upload multiple files</div>
             </div>
 
@@ -126,6 +105,7 @@
   .list-group-item {
     transition: background-color 0.2s;
     padding: 1rem;
+    border-radius: 0.25rem;
   }
   .list-group-item:hover {
     background-color: #f8f9fa;
@@ -134,9 +114,8 @@
     font-size: 0.8rem;
   }
 </style>
-{% endblock %} {% block scripts %}
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
+
 {% block scripts %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -174,7 +153,23 @@ $(document).ready(function() {
         const commentItem = $('#comment-' + commentId);
         
         $.get("{% url 'update_comment' 0 %}".replace('0', commentId), function(data) {
-            commentItem.html(data.form_html);
+            commentItem.html(`
+                <form method="post" action="{% url 'update_comment' 0 %}".replace('0', commentId) class="edit-comment-form">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <textarea name="content" class="form-control" rows="3" required>${data.comment.content}</textarea>
+                    </div>
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-secondary btn-sm cancel-edit-btn"
+                                data-comment-id="${commentId}">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="bi bi-check"></i> Update
+                        </button>
+                    </div>
+                </form>
+            `);
         });
     });
 
@@ -209,4 +204,3 @@ $(document).ready(function() {
 });
 </script>
 {% endblock %}
-

@@ -1,6 +1,5 @@
-from datetime import timezone
+from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
 from django.views.generic import View
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
