@@ -1,3 +1,5 @@
+from django.shortcuts import redirect
+
 def notifications(request):
     if request.user.is_authenticated:
         return {
