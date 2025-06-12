@@ -1,19 +1,20 @@
 # ProjectFlow
-A comprehensive Project Management App built with Django that allows users to create, organize, and track their tasks. The application features user authentication, task CRUD operations, and a clean, responsive interface.
+A comprehensive Project Management App built with Django that allows users to create, organize, and track their tasks with enhanced collaboration features. The application features user authentication, task management, project organization, and real-time notifications.
 ## 🔧 Features
 ### Core Functionality
-- User Authentication: Register, login, logout, and profile management
-- Task Management: Create, read, update, and delete tasks
-- Set due dates 
-- Task Statuses: To Do, In Progress, Done
-- Project Management: Create, read, update, and delete projects
-- Assign tasks to your team members
+- User Authentication: Secure register, login, logout, and profile management
+- Task Management: Full CRUD operations for tasks with due dates and priorities
+- Task Status Tracking: To Do (TD), In Progress (IP), Done (DN)
+- Project Organization: Group tasks into projects with team collaboration
+- Team Assignment: Assign tasks to team members and track progress
+- Real-time Notifications: Task assignment alerts, Status change updates, Deadline reminders, New comments and mentions
 ### Technical Features
-- Django REST Framework for API endpoints
-- JWT Authentication
-- Bootstrap 5 for styling
-- Custom template tags and filters
-- Comprehensive error handling
+- Django ORM: Efficient database operations
+- Bootstrap 5: Responsive, modern interface
+- JWT Authentication: Secure API endpoints
+- Signal Handlers: For real-time notifications
+- AJAX Integration: Smooth UI interactions
+- Comprehensive Error Handling: User-friendly feedback
 ## 🛠 Setup Instructions
 1. Clone the repository
 ```bash
@@ -48,6 +49,7 @@ python manage.py runserver
 - ```tasks/create/```- Create new task
 - ```tasks/update/<int:pk>/```- Update task
 - ```'tasks/delete/<int:pk>/```- Delete task
+- ```tasks/<int:pk>/follow/```- Follow/Unfollow task
 - ```'tasks/search/```- Search for tasks
 ### Project URLs
 - ```projects/```- List User's projects
