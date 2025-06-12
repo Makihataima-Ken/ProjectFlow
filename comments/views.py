@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import Response
 from rest_framework import status
+from django.core.paginator import Paginator
 
 from .models import Comment
 from tasks.models import Task
@@ -102,12 +103,18 @@ def task_comments(request, task_id):
         comment_form = CommentForm()
         # attachment_form = AttachmentForm()
     
-    comments = task.comments.all().select_related('author')
+    # comments = task.comments.all().select_related('author')
     # .prefetch_related('attachments')
+    
+     # Get all comments and paginate them
+    comments_list = task.comments.all().order_by('-created_at')
+    paginator = Paginator(comments_list, 10)  # Show 10 comments per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
     
     return render(request, 'tasks/comments.html', {
         'task': task,
-        'comments': comments,
+        'comments': page_obj,
         'comment_form': comment_form,
         'user':user,
         # 'attachment_form': attachment_form
