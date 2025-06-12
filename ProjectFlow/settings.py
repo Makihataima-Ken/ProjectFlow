@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'tasks',
     'taskLogs',
     'projects',
+    'notifications',
     'rest_framework',
     'rest_framework_simplejwt'
 ]
