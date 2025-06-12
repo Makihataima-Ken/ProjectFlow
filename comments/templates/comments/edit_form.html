@@ -10,7 +10,7 @@
   <div class="card shadow-sm">
     <div class="card-header bg-primary text-white">
       <div class="d-flex justify-content-between align-items-center">
-        <a href="{% url 'task_detail' task.id %}" class="btn btn-light btn-sm">
+        <a href="{% url 'task_detail' comment.task.id %}" class="btn btn-light btn-sm">
           <i class="bi bi-arrow-left"></i> Back to Task
         </a>
         <h2 class="mb-0">Edit Comment</h2>
@@ -27,7 +27,7 @@
         </div>
 
         <div class="d-flex justify-content-end gap-2">
-          <a href="{% url 'task_detail' task.id %}" class="btn btn-secondary btn-sm">
+          <a href="{% url 'task_detail' comment.task.id %}" class="btn btn-secondary btn-sm">
             Cancel
           </a>
           <button type="submit" class="btn btn-primary btn-sm">
