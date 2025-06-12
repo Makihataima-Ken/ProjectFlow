@@ -335,7 +335,7 @@ def create_task(request, project_id=None):
                 actions=TaskLog.ActionType.CREATE,
                 notes="Task was created through web interface"
             )
-            test(log_entry=log_entry)
+            # test(log_entry=log_entry)
             return redirect('task_list')
     else:
         initial_data = {'project': project} if project else {}
@@ -405,7 +405,7 @@ def update_task(request, pk):
                         new_value=new_values_str,
                         notes=f"Changed {', '.join(fields)} through web interface"
                     )
-                    test(log_entry=log_entry)
+                    # test(log_entry=log_entry)
             
             return redirect('task_list')
     else:

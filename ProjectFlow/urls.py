@@ -24,4 +24,5 @@ urlpatterns = [
     path('',include('projects.urls')),
     path('',include('comments.urls')),
     path('',include('taskLogs.urls')),
+    path('',include('notifications.urls')),
 ]
