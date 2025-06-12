@@ -1,0 +1,64 @@
+{% load static %}
+<div class="task-follow-widget">
+    {% if can_follow %}
+    <form class="follow-form" action="{% url 'toggle_follow_task' task.id %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm {% if is_following %}btn-warning{% else %}btn-outline-warning{% endif %}">
+            <i class="bi bi-{% if is_following %}bell-fill{% else %}bell{% endif %}"></i>
+            {% if is_following %}
+                Following
+            {% else %}
+                Follow
+            {% endif %}
+            <span class="followers-count badge bg-secondary ms-1">{{ task.followers.count }}</span>
+        </button>
+    </form>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle AJAX form submission
+    document.querySelectorAll('.follow-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = this;
+            
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: new FormData(form)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const button = form.querySelector('button');
+                    const icon = button.querySelector('i');
+                    const badge = button.querySelector('.followers-count');
+                    
+                    // Update button appearance
+                    if (data.action === 'followed') {
+                        button.classList.remove('btn-outline-warning');
+                        button.classList.add('btn-warning');
+                        icon.classList.remove('bi-bell');
+                        icon.classList.add('bi-bell-fill');
+                        button.innerHTML = button.innerHTML.replace('Follow', 'Following');
+                    } else {
+                        button.classList.remove('btn-warning');
+                        button.classList.add('btn-outline-warning');
+                        icon.classList.remove('bi-bell-fill');
+                        icon.classList.add('bi-bell');
+                        button.innerHTML = button.innerHTML.replace('Following', 'Follow');
+                    }
+                    
+                    // Update followers count
+                    badge.textContent = data.followers_count;
+                }
+            });
+        });
+    });
+});
+</script>

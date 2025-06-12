@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from ProjectFlow import settings
+from taskFollowers.models import TaskFollower
 from taskLogs.models import TaskLog
 from .models import Task
 from .forms import TaskForm, TaskSearchForm
@@ -298,12 +299,16 @@ def task_detail(request, pk):
     task = get_object_or_404(Task, pk=pk)
     if not can_view_task(user, task):
         return render(request, 'tasks/error.html', {'error': 'Not authorized'})
+    
+    is_following = TaskFollower.objects.filter(task=task, user=user).exists()
 
     serializer = TaskSerializer(task)
     print(serializer.data)
     return render(request, 'tasks/task_detail.html', {
         'task': serializer.data,
-        'can_edit': can_manage_task(user, task)
+        'is_following': is_following,
+        'can_edit': can_manage_task(user, task),
+        'can_follow': user in task.project.participants.all() and user !=task.user
     })
 
 def create_task(request, project_id=None):
